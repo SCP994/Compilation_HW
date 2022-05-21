@@ -1,18 +1,233 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <list>
 using namespace std;
 
 
+bool matchKeyWords(string str)
+{
+    list<string> keyList = { "begin", "end", "if", "then", "else", "for", "while", "do", "and", "or", "not" };
+
+    for (auto iter = keyList.begin(); iter != keyList.end(); ++iter)
+        if (*iter == str)
+            return true;
+
+    return false;
+}
+
+bool matchSigns(string str)
+{
+    list<string> keyList = { "+", "-", "*", "/", ">", "<", "=", ":=", ">=", "<=", "<>", "++", "--", "(", ")", ";", "#" };
+
+    for (auto iter = keyList.begin(); iter != keyList.end(); ++iter)
+        if (*iter == str)
+            return true;
+
+    return false;
+}
+
+bool matchIdentifier(string str)
+{
+    if (str[0] < 'A' || str[0] > 'Z' && str[0] < 'a' && str[0] != '_' || str[0] > 'z')
+        return false;
+    int len = size(str);
+    char c = 'a';
+    for (int i = 1; i < len; ++i)
+    {
+        c = str[i];
+        if (c != '_' && c < '0' || c > '9' && c < 'A' || c > 'Z' && c < 'a' || c > 'z')
+            return false;
+    }
+
+    return true;
+}
+
+bool matchNum(string str)
+{
+    int t = size(str);
+    for (int i = 0; i < t; ++i)
+        if (str[i] > '9' || str[i] < '0')
+            return false;
+
+    return true;
+}
+
+map<int, string> myMap{};
+bool match(string str)
+{
+    int len = size(str);
+    int tt = 0;
+    for (int i = 0; i < len; ++i)
+    {
+        if (i < len - 1)
+        {
+            if (matchSigns(str.substr(i, 2)))
+            {
+                if (tt != i)
+                {
+                    if (matchKeyWords(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(1, str.substr(tt, i - tt)));
+                    }
+                    if (matchIdentifier(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(2, str.substr(tt, i - tt)));
+                    }
+                    else if (matchNum(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(3, str.substr(tt, i - tt)));
+                    }
+                    else
+                        return false;
+                    tt = i + 1;
+                }
+
+                myMap.insert(pair<int, string>(4, str.substr(i, 2)));
+
+            }
+            else if (matchSigns(str.substr(i, 1)))
+            {
+                if (tt != i)
+                {
+                    if (matchKeyWords(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(1, str.substr(tt, i - tt)));
+                    }
+                    if (matchIdentifier(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(2, str.substr(tt, i - tt)));
+                    }
+                    else if (matchNum(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(3, str.substr(tt, i - tt)));
+                    }
+                    else
+                        return false;
+                    tt = i + 1;
+                }
+
+                myMap.insert(pair<int, string>(4, str.substr(i, 1)));
+            }
 
 
+
+        }
+        else
+        {
+
+            if (matchSigns(str.substr(i, 1)))
+            {
+                if (tt != i)
+                {
+                    if (matchKeyWords(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(1, str.substr(tt, i - tt)));
+                    }
+                    if (matchIdentifier(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(2, str.substr(tt, i - tt)));
+                    }
+                    else if (matchNum(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(3, str.substr(tt, i - tt)));
+                    }
+                    else
+                        return false;
+                    tt = i + 1;
+                }
+
+                myMap.insert(pair<int, string>(4, str.substr(i, 1)));
+            }
+            else
+            {
+                if (tt != i)
+                {
+                    if (matchKeyWords(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(1, str.substr(tt, i - tt)));
+                    }
+                    if (matchIdentifier(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(2, str.substr(tt, i - tt)));
+                    }
+                    else if (matchNum(str.substr(tt, i - tt)))
+                    {
+                        myMap.insert(pair<int, string>(3, str.substr(tt, i - tt)));
+                    }
+                    else
+                        return false;
+                    tt = i + 1;
+                }
+
+                //myMap.insert(pair<int, string>(4, str.substr(i, 1)));
+            }
+        }
+
+
+    }
+
+
+
+    return true;
+}
 
 void test()
 {
+    fstream newfile;
 
+    newfile.open("C:/Users/Ohh/Desktop/compiler/input.txt", ios::in); //open a file to perform read operation using file object
+    if (newfile.is_open())
+    {   //checking whether the file is open
+        string tp;
+
+        string space_delimiter = " ";
+
+        vector<string> words{};
+        size_t pos = 0;
+        while (getline(newfile, tp))
+        { //read data from file object and put it into string.
+            cout << tp << "\n"; //print the data of the string
+
+            pos = 0;
+            while ((pos = tp.find(space_delimiter)) != string::npos)
+            {
+                words.push_back(tp.substr(0, pos));
+                tp.erase(0, pos + space_delimiter.length());
+            }
+            words.push_back(tp);
+
+
+            for (const auto& str : words)
+            {
+                cout << str << endl;
+                //match(str);
+            }
+        }
+        newfile.close(); //close the file object.
+    }
+    
+    //newfile.open("tpoint.txt", ios::out);  // open a file to perform write operation using file object
+//if (newfile.is_open()) //checking whether the file is open
+//{
+//    newfile << "Tutorials point \n";   //inserting text
+//    newfile.close();    //close the file object
+//}
+    
 }
+
 
 int main()
 {
-	test();
+    test();
+
+    for (auto& t : myMap)
+    {
+        cout << "key:" << t.first << " value:" << t.second << endl;
+    }
+
 
 	return 0;
 }
