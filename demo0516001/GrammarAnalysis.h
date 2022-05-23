@@ -17,25 +17,20 @@ public:
 
 	bool readAndSaveGrammar();
 
-
-	bool generateAnalysisTable();
-
 	bool eliminateLeftRecursion();
+
+	bool simplifyGrammar();
 
 	bool extractLeftCommonFactor();
 
+	bool getFirst();
+
 	void print();
 
-
-
-
-
-
+	void printString();
 
 private:
 	string grammarFilepath;	// 语法文件地址
-
-	//string start;
 
 	int count;	// 终结符和非终结符数量，不计算空集
 

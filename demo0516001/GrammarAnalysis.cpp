@@ -39,7 +39,7 @@ bool GrammarAnalysis::readAndSaveGrammar()
 
             for (auto it = ++line.begin(); it != line.end(); ++it)
             {
-                if (*it == "e") // 非终结符能推出空集的情况
+                if (*it == "^") // 非终结符能推出空集的情况
                 {
                     get<2>(lettersToNums[line.front()]) = 1;
                     get<2>(numsToLetters[count]) = 1;
@@ -50,13 +50,13 @@ bool GrammarAnalysis::readAndSaveGrammar()
         }
         cout << endl;
 
-        int len = 0;
+        size_t len = 0;
         for (auto& i : grammarString)   // 将所有终结符转换为数字
             for (auto& j : i.second)
-                if (j == "e" && lettersToNums.find("e") == lettersToNums.end())
+                if (j == "^" && lettersToNums.find("^") == lettersToNums.end())
                 {
-                    lettersToNums["e"] = tuple<int, int, int>{ 0, 0, 0 };
-                    numsToLetters[0] = tuple<string, int, int>{ "e", 0, 0 };
+                    lettersToNums["^"] = tuple<int, int, int>{ 0, 0, 0 };
+                    numsToLetters[0] = tuple<string, int, int>{ "^", 0, 0 };
                 }
                 else
                 {
@@ -75,7 +75,7 @@ bool GrammarAnalysis::readAndSaveGrammar()
         for (auto& i : grammarString) // 将文法转换为数字
             for (auto& j : i.second)
             {
-                if (j == "e")
+                if (j == "^")
                     tempVec.push_back(get<0>(lettersToNums[j]));
                 else
                 {
@@ -99,20 +99,16 @@ bool GrammarAnalysis::readAndSaveGrammar()
 
 bool GrammarAnalysis::eliminateLeftRecursion()
 {
-    unordered_map<int, list<list<int>>> map6;
-    list<int> listForMap6;
-    list<int> temp, tem;
-    list<list<int>> t;
-    int sign = 0;
-
-
-
     list<list<int>> tempToRemove;
     list<int> tempToInsert;
-    for (auto i = numsToLetters.begin(); get<1>((*i).second) == 1; ++i)   // unordered_map 按添加顺序遍历，最开始添加的都是非终结符
+    for (auto i = numsToLetters.begin(); i != numsToLetters.end(); ++i)   // unordered_map 按添加顺序遍历，最开始添加的都是非终结符
     {
+        if (get<1>((*i).second) != 1)
+            continue;
         for (auto j = numsToLetters.begin(); j != i; ++j)
         {
+            if (get<1>((*j).second) != 1)
+                continue;
             for (auto& k : grammarNums[(*i).first])
                 if (k.front() == (*j).first)
                 {
@@ -129,132 +125,120 @@ bool GrammarAnalysis::eliminateLeftRecursion()
                 grammarNums[(*i).first].remove(k);
             tempToRemove.clear();
         }
-        for (auto& j : grammarNums[(*i).first])
-        {
+
+        for (auto& j : grammarNums[(*i).first]) // 消除直接左递归
             if ((*i).first == j.front())
-            {
                 tempToRemove.push_back(j);
-
-
+        if (tempToRemove.size() > 0)
+        {
+            for (auto& j : tempToRemove)
+                grammarNums[(*i).first].remove(j);
+            for (auto& j : grammarNums[(*i).first])
+            {
+                if (j.front() == 0)
+                    j.pop_front();
+                j.push_back(count + 1);
             }
+            for (auto& j : tempToRemove)
+            {
+                j.pop_front();
+                j.push_back(count + 1);
+                grammarNums[count + 1].push_back(j);
+            }
+            if (numsToLetters.find(0) == numsToLetters.end())   //若之前文法中没有空集，此时添加
+            {
+                numsToLetters[0] = tuple<string, int, int>{ "^", 0, 0 };
+                lettersToNums["^"] = tuple<int, int, int>{ 0, 0, 0 };
+            }
+            grammarNums[count + 1].push_back(list<int>{ 0 });
+            numsToLetters[++count] = tuple<string, int, int>{ "___", 1, 1 };
+            tempToRemove.clear();
         }
-
-
-
     }
 
+    return true;
+}
 
+bool GrammarAnalysis::simplifyGrammar()
+{
+    set<int> usedSymbols;
+    usedSymbols.insert(1);  // 假设 1 是开始符号
 
-
-
-
-
-
-
-
-
-
-
-    //for (auto i = grammarNums.begin(); i != grammarNums.end(); ++i)
-    //{
-    //    for (auto j = grammarNums.begin(); j != i; ++j)
-    //    {
-    //        for (auto k = (*i).second.begin(); k != (*i).second.end(); ++k)
-    //        {
-    //            if ((*k).front() == (*j).first)
-    //            {
-    //                for (auto& l : (*j).second)
-    //                {
-    //                    if (l.front() != 0)
-    //                    {
-    //                        for (auto& m : l)
-    //                        {
-    //                            temp.push_back(m);
-    //                        }
-    //                    }
-    //                    for (auto n = ++(*k).begin(); n != (*k).end(); ++n)
-    //                    {
-    //                        temp.push_back(*n);
-    //                    }
-    //                    t.push_back(temp);
-    //                    temp.clear();
-    //                }
-    //                sign = 1;
-    //                tem = *k;
-    //            }
-    //        }
-    //        if (sign)
-    //        {
-    //            (*i).second.remove(tem);
-
-    //            auto o = --t.end();
-    //            for (; o != t.begin(); --o)
-    //            {
-    //                (*i).second.push_front(*o);
-    //            }
-    //            (*i).second.push_front(*o);
-
-    //            t.clear();
-    //            sign = 0;
-    //            tem.clear();
-    //        }
-    //    }
-    //    list<list<int>> tt;
-    //    for (auto& p : (*i).second)
-    //    {
-    //        if ((*i).first == p.front())
-    //        {
-    //            tt.push_back(p);
-    //            for (auto it = ++p.begin(); it != p.end(); ++it)
-    //            {
-    //                listForMap6.push_back(*it);
-    //            }
-    //            listForMap6.push_back(count + 1);
-    //        }
-    //        if (listForMap6.size() > 0)
-    //        {
-    //            map6[count + 1].push_back(listForMap6);
-    //        }
-
-    //        listForMap6.clear();
-    //    }
-    //    if (map6.find(count + 1) != map6.end())
-    //    {
-
-    //        for (auto& item : tt)
-    //        {
-    //            (*i).second.remove(item);
-    //        }
-    //        for (auto& item : (*i).second)
-    //        {
-    //            item.push_back(count + 1);
-    //        }
-    //        map6[count + 1].push_back(list<int>{ 0 });
-    //        ++count;
-    //    }
-    //    tt.clear();
-
-    //}
-    //for (auto& item : map6)
-    //{
-    //    grammarNums[item.first] = item.second;
-    //}
+    bool sign = true;
+    while (sign)
+    {
+        sign = false;
+        for (auto& i : usedSymbols)
+            for (auto& j : grammarNums[i])
+                for (auto& k : j)
+                    if (get<1>(numsToLetters[k]) == 1 && usedSymbols.find(k) == usedSymbols.end())
+                    {
+                        sign = true;
+                        usedSymbols.insert(k);
+                    }
+    }
+    
+    list<int> tempToDelete;
+    for (auto i = numsToLetters.begin(); i != numsToLetters.end(); ++i)
+        if (get<1>((*i).second) == 1 && usedSymbols.find((*i).first) == usedSymbols.end())
+        {
+            grammarNums.erase(grammarNums.find((*i).first));
+            lettersToNums.erase(lettersToNums.find(get<0>(numsToLetters[(*i).first])));
+            tempToDelete.push_back((*i).first); // 正在被遍历对象的不能被删掉
+        }
+    for (auto& i : tempToDelete)
+        numsToLetters.erase(numsToLetters.find(i));
+ 
     return true;
 }
 
 bool GrammarAnalysis::extractLeftCommonFactor()
 {
-    unordered_map<int, list<list<int>>> map6;
-
+    size_t len = 0;
+    int sign = 0;
+    list<list<int>> tempToChange;
     for (auto& i : grammarNums)
-    {
-        for (auto& j : i.second)
-        {
+        for (auto j = i.second.begin(); j != i.second.end(); ++j)
+            if ((*j).front() != 0)
+            {
+                tempToChange.push_back(*j);
+                for (auto k = j; k != i.second.end(); ++k)  // 注意不能写 k = ++j;
+                {
+                    if (k == j)
+                        continue;
+                    if ((*k).front() == (*j).front())
+                        tempToChange.push_back(*k);
+                }
 
-        }
+                if (tempToChange.size() > 1)
+                {
+                    *j = list<int>{ (*j).front() };
+                    (*j).push_back(count + 1);
 
+                    for (auto& k : tempToChange)
+                    {
+                        i.second.remove(k);
+                        k.pop_front();
+                        if (k.size() != 0)
+                            grammarNums[count + 1].push_back(k);
+                        else
+                        {
+                            sign = 1;   // 判断能否推出空集
+                            grammarNums[count + 1].push_back(list<int>{ 0 });
+                        }
+                    }
+                    numsToLetters[++count] = tuple<string, int, int>{ "___", 1, sign };
+                    sign = 0;
+                }
+                tempToChange.clear();
+            }
 
-    }
+    return true;
+}
+
+bool GrammarAnalysis::getFirst()
+{
+
 
 
 
@@ -283,6 +267,41 @@ void GrammarAnalysis::print()
         {
             for (auto& k : j)
                 cout << k << " ";
+            cout << endl;
+        }
+    }
+    cout << "*****************************************" << endl;
+}
+
+void GrammarAnalysis::printString()
+{
+    cout << "*****************************************" << endl;
+    cout << "Letters To Numbers: " << endl;
+    for (auto& item : lettersToNums)
+        cout << "key: " << item.first << ", value: " << get<0>(item.second) << " "
+        << get<1>(item.second) << " " << get<2>(item.second) << endl;
+
+    cout << endl << "Numbers to Letters: " << endl;
+    for (auto& item : numsToLetters)
+        cout << "key: " << item.first << ", value: " << get<0>(item.second) << " "
+        << get<1>(item.second) << " " << get<2>(item.second) << endl;
+
+    cout << endl << "Grammar: " << endl;
+    for (auto& item : grammarNums)
+    {
+        cout << "key: ";
+        if (get<0>(numsToLetters[item.first]) == "___")
+            cout << item.first << ", value: " << endl;
+        else
+            cout << get<0>(numsToLetters[item.first]) << ", value: " << endl;
+
+        for (auto& j : item.second)
+        {
+            for (auto& k : j)
+                if (get<0>(numsToLetters[k]) == "___")
+                    cout << k << " ";
+                else
+                    cout << get<0>(numsToLetters[k]) << " ";
             cout << endl;
         }
     }

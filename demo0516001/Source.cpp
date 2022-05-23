@@ -368,26 +368,14 @@ int main()
 
     GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar.txt");
     grammarAnalysis.readAndSaveGrammar();
-    grammarAnalysis.print();
+    grammarAnalysis.printString();
     grammarAnalysis.eliminateLeftRecursion();
-    grammarAnalysis.print();
+    grammarAnalysis.printString();
+    grammarAnalysis.simplifyGrammar();
+    grammarAnalysis.printString();
+    grammarAnalysis.extractLeftCommonFactor();
+    grammarAnalysis.printString();
 
-
-    list<int> a{ 1, 2, 3, 4 };
-    list<int> b{2};
-
-
-    //for (auto& i : a)
-    //{
-    //    if (i % 2 == 0)
-    //    {
-    //        b.push_back(i);
-    //        a.push_back(i + 11);
-    //    }
-    //    cout << i << endl;
-    //}
-    //for (auto& i : b)
-    //    a.remove(i);
 
 
 
