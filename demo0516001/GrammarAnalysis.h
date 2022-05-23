@@ -25,9 +25,13 @@ public:
 
 	bool getFirst();
 
+	bool getFollow();
+
 	void print();
 
 	void printString();
+
+	void printFirstSet();
 
 private:
 	string grammarFilepath;	// 语法文件地址
@@ -41,5 +45,9 @@ private:
 	unordered_map<string, list<string>> grammarString;
 
 	unordered_map<int, list<list<int>>> grammarNums;
+
+	unordered_map<int, set<int>> firstSet;
+
+	unordered_map<int, set<int>> followSet;
 
 };

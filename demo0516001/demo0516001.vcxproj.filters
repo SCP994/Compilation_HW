@@ -21,18 +21,12 @@
     <ClCompile Include="LexicalAnalysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GrammarAnalysis_.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GrammarAnalysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LexicalAnalysis.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GrammarAnalysis_.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="GrammarAnalysis.h">

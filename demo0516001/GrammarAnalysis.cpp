@@ -238,6 +238,34 @@ bool GrammarAnalysis::extractLeftCommonFactor()
 
 bool GrammarAnalysis::getFirst()
 {
+    bool sign = true;
+    while (sign)
+    {
+        sign = false;
+        for (auto& i : grammarNums)
+        {
+            for (auto& j : i.second)
+                if (get<1>(numsToLetters[j.front()]) == 0 && firstSet[i.first].find(j.front()) == firstSet[i.first].end())
+                {
+                    sign = true;
+                    firstSet[i.first].insert(j.front());
+                }
+                else if (get<1>(numsToLetters[j.front()]) == 1)
+                    for (auto& k : firstSet[j.front()])
+                        if (firstSet[i.first].find(k) == firstSet[i.first].end())
+                        {
+                            sign = true;
+                            firstSet[i.first].insert(k);
+                        }
+        }
+    }
+    return true;
+}
+
+bool GrammarAnalysis::getFollow()
+{
+
+
 
 
 
@@ -304,6 +332,24 @@ void GrammarAnalysis::printString()
                     cout << get<0>(numsToLetters[k]) << " ";
             cout << endl;
         }
+    }
+    cout << "*****************************************" << endl;
+}
+
+void GrammarAnalysis::printFirstSet()
+{
+    cout << "*****************************************" << endl;
+    for (auto& i : firstSet)
+    {
+        if (get<0>(numsToLetters[i.first]) == "___")
+            cout << "key: " << i.first << ", value: " << endl;
+        else
+            cout << "key: " << get<0>(numsToLetters[i.first]) << ", value: " << endl;
+        for (auto& j : i.second)
+            if (get<0>(numsToLetters[j]) == "___")
+                cout << j << endl;
+            else
+                cout << get<0>(numsToLetters[j]) << endl;
     }
     cout << "*****************************************" << endl;
 }

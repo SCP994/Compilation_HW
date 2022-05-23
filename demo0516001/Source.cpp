@@ -375,6 +375,8 @@ int main()
     grammarAnalysis.printString();
     grammarAnalysis.extractLeftCommonFactor();
     grammarAnalysis.printString();
+    grammarAnalysis.getFirst();
+    grammarAnalysis.printFirstSet();
 
 
 
