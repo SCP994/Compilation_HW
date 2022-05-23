@@ -5,9 +5,9 @@
 #include <map>
 #include <stack>
 #include <list>
+#include <set>
 #include "LexicalAnalysis.h"
 #include "GrammarAnalysis.h"
-
 using namespace std;
 
 // 1 key, 2 identifier, 3 num, 4 sign
@@ -302,7 +302,7 @@ bool match(string str)
     return true;
 }
 
-void test()
+void testt()
 {
     fstream newfile;
 
@@ -346,28 +346,8 @@ void test()
     
 }
 
-
-void test1(const char* cs)
+void test()
 {
-    cout << cs << endl;
-}
-
-int main()
-{
-    //test();
-
-    //cout << "Output: " << endl;
-    //for (auto it = myVector.begin(); it != myVector.end(); ++it)
-    //{
-    //    cout << "key: " << (*it).first << ", value: " << (*it).second << endl;
-    //}
-
-    //myVector.push_back(pair<int, string>(4, "$"));
-
-    //constructt();
-    //cout << analyze(myVector) << " answer";
-
-
     LexicalAnalysis lexicalAnalysis("C:/Users/Ohh/Desktop/compiler/input.txt");
     lexicalAnalysis.run();
     list<pair<int, string>> list = lexicalAnalysis.getSequences();
@@ -380,9 +360,37 @@ int main()
     cout << analyze(list) << " answer" << endl;
     cout << (pred[0][3].first == "") << endl;
     cout << pred[0][0].first << endl;
+}
+
+int main()
+{
+    //test();
 
     GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar.txt");
-    grammarAnalysis.generateAnalysisTable();
+    grammarAnalysis.readAndSaveGrammar();
+    grammarAnalysis.print();
+    grammarAnalysis.eliminateLeftRecursion();
+    grammarAnalysis.print();
+
+
+    list<int> a{ 1, 2, 3, 4 };
+    list<int> b{2};
+
+
+    //for (auto& i : a)
+    //{
+    //    if (i % 2 == 0)
+    //    {
+    //        b.push_back(i);
+    //        a.push_back(i + 11);
+    //    }
+    //    cout << i << endl;
+    //}
+    //for (auto& i : b)
+    //    a.remove(i);
+
+
+
 
 
 	return 0;

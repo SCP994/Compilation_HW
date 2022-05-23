@@ -25,14 +25,12 @@ void LexicalAnalysis::run()
         {
             cout << "Input: " << str << endl;
 
-            pos = 0;
             while ((pos = str.find(space_delimiter)) != string::npos)
             {
                 words.push_back(str.substr(0, pos));
                 str.erase(0, pos + space_delimiter.length());
             }
             words.push_back(str);
-
 
             for (const auto& str : words)
             {
