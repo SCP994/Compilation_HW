@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <tuple>
 #include <set>
+#include <stack>
 using namespace std;
 
 class GrammarAnalysis
@@ -33,6 +34,8 @@ public:
 
 	bool generateLL1Table();
 
+	bool grammarAnalyse(list<pair<int, string> >&);
+
 	void print();
 
 	void printString();
@@ -44,6 +47,10 @@ public:
 	void printFollowSet();
 
 	void printSelectSet();
+
+	void printLL1Table();
+
+	void printNumAsString(int);
 
 private:
 	string grammarFilepath;	// 语法文件地址
@@ -67,6 +74,8 @@ private:
 	unordered_map<int, set<int> > followSet;
 
 	unordered_map<int, list<set<int> > > selectSet;
+
+	unordered_map<int, unordered_map<int, list<int> > > LL1Table;
 
 	void listToVector();	// 语法规则 list 转换成 vector，使用 list 还是 vector 视情况而定
 

@@ -308,6 +308,7 @@ bool GrammarAnalysis::getFirstRight()
 
 bool GrammarAnalysis::getFollow()
 {
+    lettersToNums["$"] = tuple<int, int, int>{ count + 1, 0, 0 };
     numsToLetters[++count] = tuple<string, int, int>{ "$", 0, 0 };
     followSet[1].insert(count);
 
@@ -420,10 +421,91 @@ bool GrammarAnalysis::getSelect()
 
 bool GrammarAnalysis::generateLL1Table()
 {
-
-
+    for (auto& i : selectSet)
+    {
+        auto j = i.second.begin();
+        auto k = grammarNums[i.first].begin();
+        for (; j != i.second.end(); ++j, ++k)
+            for (auto& l : *j)
+            {
+                if (LL1Table[i.first][l].size() > 0)
+                    return false;   // 不是 LL1 文法
+                LL1Table[i.first][l] = *k;
+            }
+    }
 
     return true;
+}
+
+bool GrammarAnalysis::grammarAnalyse(list<pair<int, string> >& list)
+{
+    stack<int> inputString, tempStack;
+    inputString.push(get<0>(lettersToNums["$"]));
+    tempStack.push(get<0>(lettersToNums["$"]));
+    tempStack.push(1);   // 将开始符号压入栈中
+
+    auto i = list.end();
+    do
+    {
+        --i;
+        if ((*i).first == 2)
+            inputString.push(get<0>(lettersToNums["i"]));
+        else if ((*i).first == 4)
+            inputString.push(get<0>(lettersToNums[(*i).second]));
+        else
+        {
+            cout << "Error: " << "input string" << endl;
+            return false;
+        }
+
+    } while (i != list.begin());
+
+    int row, col;
+    bool sign = true;
+    while (tempStack.size() > 1)
+    {
+        row = tempStack.top();
+        col = inputString.top();
+
+        if (LL1Table[row].find(col) == LL1Table[row].end())
+        {
+            cout << "Error: ";
+            printNumAsString(row);
+            cout << " ";
+            printNumAsString(col);
+            cout << " " << endl;
+            inputString.pop();
+            sign = false;
+        }
+        else
+        {
+            tempStack.pop();
+            if (LL1Table[row][col].front() != 0)
+            {
+                auto i = LL1Table[row][col].end();
+                do
+                {
+                    --i;
+                    tempStack.push(*i);
+                } while (i != LL1Table[row][col].begin());
+            }
+        }
+
+        while (tempStack.top() == inputString.top() && tempStack.top() != get<0>(lettersToNums["$"]))
+        {
+            cout << "Matched: ";
+            printNumAsString(tempStack.top());
+            cout << " " << endl;
+            tempStack.pop();
+            inputString.pop();
+        }
+    }
+
+    if (sign)
+        cout << "Match successfully!" << endl;
+    else
+        cout << "Failed to match." << endl;
+    return sign;
 }
 
 void GrammarAnalysis::listToVector()
@@ -573,4 +655,36 @@ void GrammarAnalysis::printSelectSet()
         }
     }
     cout << "*****************************************" << endl;
+}
+
+void GrammarAnalysis::printLL1Table()
+{
+    cout << "***************************************** LL1 Table" << endl;
+    for (auto& i : LL1Table)
+    {
+        cout << "row: ";
+        printNumAsString(i.first);
+        cout << endl;
+        for (auto& j : i.second)
+        {
+            cout << "   column: ";
+            printNumAsString(j.first);
+            cout << endl << "   ";
+            for (auto& k : j.second)
+            {
+                printNumAsString(k);
+                cout << " ";
+            }
+            cout << endl;
+        }
+    }
+    cout << "*****************************************" << endl;
+}
+
+void GrammarAnalysis::printNumAsString(int num)
+{
+    if (get<0>(numsToLetters[num]) == "___")
+        cout << num;
+    else
+        cout << get<0>(numsToLetters[num]);
 }
