@@ -376,7 +376,13 @@ int main()
     grammarAnalysis.extractLeftCommonFactor();
     grammarAnalysis.printString();
     grammarAnalysis.getFirst();
+    grammarAnalysis.getFirstRight();
     grammarAnalysis.printFirstSet();
+    grammarAnalysis.printFirstRightSet();
+    grammarAnalysis.getFollow();
+    grammarAnalysis.printFollowSet();
+    grammarAnalysis.getSelect();
+    grammarAnalysis.printSelectSet();
 
 
 

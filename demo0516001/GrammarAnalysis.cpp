@@ -233,6 +233,7 @@ bool GrammarAnalysis::extractLeftCommonFactor()
                 tempToChange.clear();
             }
 
+    listToVector();
     return true;
 }
 
@@ -262,16 +263,180 @@ bool GrammarAnalysis::getFirst()
     return true;
 }
 
+bool GrammarAnalysis::getFirstRight()
+{
+    set<int> tempToInsert;
+    size_t len = 0;
+    int sign = 0;
+    for (auto& i : grammarNumsVector)
+    {
+        for (auto& j : i.second)
+            if (j.front() == 0)
+            {
+                tempToInsert.insert(0);
+                firstRightSet[i.first].push_back(pair<set<int>, int>(tempToInsert, 1));
+                tempToInsert.clear();
+            }
+            else
+            {
+                len = j.size();
+                for (int k = 0; k < len; ++k)
+                    if (get<2>(numsToLetters[j[k]]) == 1)
+                        for (auto& l : firstSet[j[k]])
+                        {
+                            tempToInsert.insert(l);
+                            if (k == len - 1)
+                                sign = 1;
+                        }
+                    else
+                    {
+                        if (get<1>(numsToLetters[j[k]]) == 1)
+                            for (auto& l : firstSet[j[k]])
+                                tempToInsert.insert(l);
+                        else
+                            tempToInsert.insert(j[k]);
+                        break;
+                    }
+                firstRightSet[i.first].push_back(pair<set<int>, int>(tempToInsert, sign));
+                tempToInsert.clear();
+                sign = 0;
+            }
+    }
+
+    return true;
+}
+
 bool GrammarAnalysis::getFollow()
+{
+    numsToLetters[++count] = tuple<string, int, int>{ "$", 0, 0 };
+    followSet[1].insert(count);
+
+    bool sign = true;
+    size_t len = 0;
+    while (sign)
+    {
+        sign = false;
+        for (auto& i : grammarNumsVector)
+            for (auto& j : i.second)
+            {
+                len = j.size();
+                for (int k = 0; k < len; ++k)
+                    if (get<1>(numsToLetters[j[k]]) == 1)
+                        if (k == len - 1)   // A -> aB
+                        {
+                            for (auto& l : followSet[i.first])
+                                if (followSet[j[k]].find(l) == followSet[j[k]].end())
+                                {
+                                    sign = true;
+                                    followSet[j[k]].insert(l);
+                                }
+                        }   // 删掉这大括号，下面 else 会匹配错 if
+                        else
+                            for (int l = k + 1; l < len; ++l) // A -> aBc
+                            {
+                                if (get<2>(numsToLetters[j[l]]) != 1)   // 将 c 中不能推出空集的符号之前的非终结符 first 集加到 A 的 follow 集中
+                                {
+                                    for (int m = k + 1; m < l; ++m)
+                                        for (auto& n : firstSet[j[m]])
+                                            if (followSet[j[k]].find(n) == followSet[j[k]].end())
+                                            {
+                                                sign = true;
+                                                followSet[j[k]].insert(n);
+                                            }
+                                    if (get<1>(numsToLetters[j[l]]) == 1)   // c 是不能推出空集的非终结符
+                                    {
+                                        for (auto& n : firstSet[j[l]])
+                                            if (followSet[j[k]].find(n) == followSet[j[k]].end())
+                                            {
+                                                sign = true;
+                                                followSet[j[k]].insert(n);
+                                            }
+                                    }
+                                    else if (followSet[j[k]].find(j[l]) == followSet[j[k]].end())   // c 是终结符
+                                    {
+                                        sign = true;
+                                        followSet[j[k]].insert(j[l]);
+                                    }
+                                    break;
+                                }
+                                if (l == len - 1)   // A -> aBc; c -> ^
+                                {
+                                    for (int m = k + 1; m < len; ++m)
+                                        for (auto& n : firstSet[j[m]])
+                                            if (followSet[j[k]].find(n) == followSet[j[k]].end())
+                                            {
+                                                sign = true;
+                                                followSet[j[k]].insert(n);
+                                            }
+                                    for (auto& m : followSet[i.first])
+                                        if (followSet[j[k]].find(m) == followSet[j[k]].end())
+                                        {
+                                            sign = true;
+                                            followSet[j[k]].insert(m);
+                                        }
+                                }
+                            }
+            }
+    }
+    for (auto& i : followSet)   // 删除添加进去的空集
+    {
+        i.second.erase(0);
+    }
+
+    return true;
+}
+
+bool GrammarAnalysis::getSelect()
+{
+    set<int> tempToInsert;
+
+    auto i = grammarNumsVector.begin();
+    auto j = firstRightSet.begin();
+    for (;i != grammarNumsVector.end(); ++i, ++j)
+    {
+        auto k = (*i).second.begin();
+        auto l = (*j).second.begin();
+        for (; k != (*i).second.end(); ++k, ++l)
+        {
+            for (auto& m : (*l).first)  // 将产生式右部 first 集加进去
+                if (m != 0)
+                    tempToInsert.insert(m);
+
+            if ((*l).second != 1)   // 产生式右部不能推出空集
+                selectSet[(*i).first].push_back(tempToInsert);
+            else
+            {
+                for (auto& m : followSet[(*i).first])   // 将产生式左边非终结符 follow 集加进去
+                    tempToInsert.insert(m);
+                selectSet[(*i).first].push_back(tempToInsert);
+                tempToInsert.clear();
+            }
+            tempToInsert.clear();
+        }
+    }
+
+    return true;
+}
+
+bool GrammarAnalysis::generateLL1Table()
 {
 
 
 
-
-
-
-
     return true;
+}
+
+void GrammarAnalysis::listToVector()
+{
+    vector<int> tempToInsert;
+    for (auto& i : grammarNums)
+        for (auto& j : i.second)
+        {
+            for (auto& k : j)
+                tempToInsert.push_back(k);
+            grammarNumsVector[i.first].push_back(tempToInsert); // list 转换成 vector，更方便随机访问
+            tempToInsert.clear();
+        }
 }
 
 void GrammarAnalysis::print()
@@ -338,7 +503,7 @@ void GrammarAnalysis::printString()
 
 void GrammarAnalysis::printFirstSet()
 {
-    cout << "*****************************************" << endl;
+    cout << "***************************************** first set" << endl;
     for (auto& i : firstSet)
     {
         if (get<0>(numsToLetters[i.first]) == "___")
@@ -350,6 +515,62 @@ void GrammarAnalysis::printFirstSet()
                 cout << j << endl;
             else
                 cout << get<0>(numsToLetters[j]) << endl;
+    }
+    cout << "*****************************************" << endl;
+}
+
+void GrammarAnalysis::printFirstRightSet()
+{
+    cout << "***************************************** first right set" << endl;
+    for (auto& i : firstRightSet)
+    {
+        if (get<0>(numsToLetters[i.first]) == "___")
+            cout << "key: " << i.first << ", value: " << endl;
+        else
+            cout << "key: " << get<0>(numsToLetters[i.first]) << ", value: " << endl;
+        for (auto& j : i.second)
+        {
+            for (auto& k : j.first)
+                cout << get<0>(numsToLetters[k]) << " ";
+            cout << "It can get to e: " << j.second << endl;
+        }
+    }
+    cout << "*****************************************" << endl;
+}
+
+void GrammarAnalysis::printFollowSet()
+{
+    cout << "***************************************** follow set" << endl;
+    for (auto& i : followSet)
+    {
+        if (get<0>(numsToLetters[i.first]) == "___")
+            cout << "key: " << i.first << ", value: " << endl;
+        else
+            cout << "key: " << get<0>(numsToLetters[i.first]) << ", value: " << endl;
+        for (auto& j : i.second)
+            if (get<0>(numsToLetters[j]) == "___")
+                cout << j << endl;
+            else
+                cout << get<0>(numsToLetters[j]) << endl;
+    }
+    cout << "*****************************************" << endl;
+}
+
+void GrammarAnalysis::printSelectSet()
+{
+    cout << "***************************************** select set" << endl;
+    for (auto& i : selectSet)
+    {
+        if (get<0>(numsToLetters[i.first]) == "___")
+            cout << "key: " << i.first << ", value: " << endl;
+        else
+            cout << "key: " << get<0>(numsToLetters[i.first]) << ", value: " << endl;
+        for (auto& j : i.second)
+        {
+            for (auto& k : j)
+                cout << get<0>(numsToLetters[k]) << " ";
+            cout << endl;
+        }
     }
     cout << "*****************************************" << endl;
 }
