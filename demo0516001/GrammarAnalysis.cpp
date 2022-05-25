@@ -233,7 +233,6 @@ bool GrammarAnalysis::extractLeftCommonFactor()
                 tempToChange.clear();
             }
 
-    listToVector();
     return true;
 }
 
@@ -306,10 +305,14 @@ bool GrammarAnalysis::getFirstRight()
     return true;
 }
 
-bool GrammarAnalysis::getFollow()
+void GrammarAnalysis::setEndSymbol()
 {
     lettersToNums["$"] = tuple<int, int, int>{ count + 1, 0, 0 };
     numsToLetters[++count] = tuple<string, int, int>{ "$", 0, 0 };
+}
+
+bool GrammarAnalysis::getFollow()
+{
     followSet[1].insert(count);
 
     bool sign = true;
@@ -380,9 +383,7 @@ bool GrammarAnalysis::getFollow()
             }
     }
     for (auto& i : followSet)   // 删除添加进去的空集
-    {
         i.second.erase(0);
-    }
 
     return true;
 }
@@ -394,20 +395,15 @@ bool GrammarAnalysis::getSelect()
     auto i = grammarNumsVector.begin();
     for (;i != grammarNumsVector.end(); ++i)
     {
-
-        printNumAsString((*i).first);
-        cout << endl;
-        auto k = (*i).second.begin();
-        auto l = firstRightSet[(*i).first].begin(); // 注意保持两张表的一直，哈希表遍历没有顺序
-        for (; k != (*i).second.end(); ++k, ++l)
+        auto j = (*i).second.begin();
+        auto k = firstRightSet[(*i).first].begin(); // 注意保持两张表的一致，哈希表遍历没有顺序
+        for (; j != (*i).second.end(); ++j, ++k)
         {
-            for (auto& m : (*l).first)  // 将产生式右部 first 集加进去
-            {
+            for (auto& m : (*k).first)  // 将产生式右部 first 集加进去
                 if (m != 0)
                     tempToInsert.insert(m);
-            }
 
-            if ((*l).second != 1)   // 产生式右部不能推出空集
+            if ((*k).second != 1)   // 产生式右部不能推出空集
                 selectSet[(*i).first].push_back(tempToInsert);
             else
             {
@@ -775,10 +771,7 @@ void GrammarAnalysis::getItemSet()
         tempList.push_back(i);
 
     tempSet.insert(pair<int, list<int> >{ start, tempList });
-
-    int stateCount = 0;
     itemSet[stateCount++] = closure(tempSet);
-    printItemSet();
     bool sign = true;
     while (sign)
     {
@@ -788,24 +781,28 @@ void GrammarAnalysis::getItemSet()
                 if (j.first != 0)
                 {
                     tempSet = go(i.first, j.first);
-                    if (tempSet.size() > 0 && !itemSetFind(tempSet))
+                    if (tempSet.size() > 0)
                     {
-                        sign = true;
-                        goMap[i.first][j.first] = stateCount;
-                        itemSet.insert(pair<int, set<pair<int, list<int> > > >{ stateCount++, tempSet });   // 此时插入的值不会被遍历到
+                        goMap[i.first][j.first] = itemSetFind(tempSet);
+                        if (goMap[i.first][j.first] == -1) // 没有找到
+                        {
+                            sign = true;
+                            goMap[i.first][j.first] = stateCount;
+                            itemSet.insert(pair<int, set<pair<int, list<int> > > >{ stateCount++, tempSet });   // 此时插入的值不会被遍历到
+                        }
                     }
                 }
     }
     printItemSet();
 }
 
-bool GrammarAnalysis::itemSetFind(set<pair<int, list<int> > >& set)
+int GrammarAnalysis::itemSetFind(set<pair<int, list<int> > >& set)
 {
     for (auto& i : itemSet)
         if (i.second == set)
-            return true;
+            return i.first;
 
-    return false;
+    return -1;
 }
 
 void GrammarAnalysis::printItemSet()
@@ -826,4 +823,106 @@ void GrammarAnalysis::printItemSet()
         }
         cout << endl;
     }
+}
+
+bool GrammarAnalysis::generateSLR1Table()
+{
+    int endCol = get<0>(lettersToNums["$"]);
+    int endRow = 0;
+
+    set<int> tempFollowSet;
+    for (int i = 0; i < stateCount; ++i)    // 判断文法的冲突能否解决
+    {
+        for (auto& k : itemSet[i])
+        {
+            if (*--(k.second.end()) == -1)
+            {
+                if (k.first == start)
+                    endRow = i;
+                for (auto& l : followSet[k.first])
+                    if (tempFollowSet.find(l) != tempFollowSet.end())
+                        return false;
+                    else
+                        tempFollowSet.insert(l);
+            }
+            else
+                for (auto l = k.second.begin(); l != k.second.end(); ++l)
+                    if (*l == -1)
+                    {
+                        if (get<1>(numsToLetters[*++l]) == 0)
+                            if (tempFollowSet.find(*l) != tempFollowSet.end())
+                                return false;
+                            else
+                                tempFollowSet.insert(*l);
+                        break;
+                    }
+        }
+        tempFollowSet.clear();
+    }
+
+    list<int> tempList;
+    for (int i = 0; i < stateCount; ++i)
+    {
+        for (auto& j : numsToLetters)
+        {
+            if (j.first == endCol && i == endRow)   // Acc 特殊处理
+            {
+                SLR1Table[i][j.first] = tuple<int, int, list<int> >{ -1, 0, list<int>{} };
+                continue;
+            }
+            if (goMap[i].find(j.first) != goMap[i].end())
+            {
+                if (get<1>(numsToLetters[j.first]) == 1)
+                    SLR1Table[i][j.first] = tuple<int, int, list<int> >{ 1, goMap[i][j.first], list<int>{} };
+                else
+                    SLR1Table[i][j.first] = tuple<int, int, list<int> >{ 0, goMap[i][j.first], list<int>{} };
+                continue;
+            }
+            for (auto& k : itemSet[i])
+                if (*--k.second.end() == -1)  // 归约项目
+                    if (followSet[k.first].find(j.first) != followSet[k.first].end())
+                    {
+                        tempList = k.second;
+                        tempList.pop_front();
+                        SLR1Table[i][j.first] = tuple<int, int, list<int> >{ 2, 0, tempList };
+                        break;
+                    }
+        }
+    }
+
+    printSLR1Table();
+    return true;
+}
+
+void GrammarAnalysis::printSLR1Table()
+{
+    //unordered_map<int, unordered_map<int, tuple<int, int, list<int>> > > SLR1Table;
+
+    for (int i = 0; i < stateCount; ++i)
+    {
+        cout << "Row: " << i << endl;
+        for (auto& i : SLR1Table[i])
+        {
+            cout << "   ";
+            printNumAsString(i.first);
+            cout << ": " << get<0>(i.second) << ", " << get<1>(i.second) << endl;
+        }
+    }
+}
+
+void GrammarAnalysis::printGoMap()
+{
+    for (int i = 0; i < stateCount; ++i)
+    {
+        for (auto& j : goMap[i])
+        {
+            cout << "state: " << i << " and ";
+            printNumAsString(j.first);
+            cout << " go to " << j.second << endl;
+
+        }
+
+    }
+
+
 }

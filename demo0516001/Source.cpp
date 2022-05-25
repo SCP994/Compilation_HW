@@ -14,14 +14,16 @@ void test()
 
     GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar.txt");
     grammarAnalysis.readAndSaveGrammar();
-    grammarAnalysis.eliminateLeftRecursion();
-    grammarAnalysis.simplifyGrammar();
-    grammarAnalysis.extractLeftCommonFactor();
+    //grammarAnalysis.eliminateLeftRecursion();
+    //grammarAnalysis.simplifyGrammar();
+    //grammarAnalysis.extractLeftCommonFactor();
+    grammarAnalysis.listToVector();
     grammarAnalysis.printString();
     grammarAnalysis.getFirst();
     grammarAnalysis.getFirstRight();
     grammarAnalysis.printFirstSet();
     grammarAnalysis.printFirstRightSet();
+    grammarAnalysis.setEndSymbol();
     grammarAnalysis.getFollow();
     grammarAnalysis.printFollowSet();
     grammarAnalysis.getSelect();
@@ -29,38 +31,16 @@ void test()
     if (grammarAnalysis.generateLL1Table())
         grammarAnalysis.printLL1Table();
 
-    cout << endl;
+    //cout << endl;
     //grammarAnalysis.grammarAnalyse(list);
 
-    //grammarAnalysis.getItemSet();
+    grammarAnalysis.getItemSet();
+    grammarAnalysis.generateSLR1Table();
 }
 
 int main()
 {
     test();
-
-    //list<int> a;
-
-    //for (auto& i : a)
-    //{
-    //    cout << i;
-    //}
-
-    //for (auto k = a.begin(); k != a.end(); ++k)
-    //{
-    //    if (*k != 6)
-    //    {
-
-    //    }
-    //    else
-    //    {
-    //        cout << *++k;
-
-    //        //break;
-    //    }
-    //}
-    //cout << *--a.end();
-
 
 	return 0;
 }

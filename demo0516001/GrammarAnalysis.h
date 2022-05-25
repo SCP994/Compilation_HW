@@ -24,9 +24,13 @@ public:
 
 	bool extractLeftCommonFactor();
 
+	void listToVector();	// 语法规则 list 转换成 vector，使用 list 还是 vector 视情况而定
+
 	bool getFirst();
 
 	bool getFirstRight();
+
+	void setEndSymbol();
 
 	bool getFollow();
 
@@ -58,9 +62,15 @@ public:
 
 	void getItemSet();
 
-	bool itemSetFind(set<pair<int, list<int> > >&);
+	int itemSetFind(set<pair<int, list<int> > >&);
+
+	bool generateSLR1Table();
 
 	void printItemSet();
+
+	void printSLR1Table();
+
+	void printGoMap();
 
 private:
 	string grammarFilepath;	// 语法文件地址
@@ -93,6 +103,10 @@ private:
 
 	unordered_map<int, unordered_map<int, int> > goMap;
 
-	void listToVector();	// 语法规则 list 转换成 vector，使用 list 还是 vector 视情况而定
+	int stateCount = 0;
+
+	unordered_map<int, unordered_map<int, tuple<int, int, list<int> > > > SLR1Table;
+
+
 
 };
