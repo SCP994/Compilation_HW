@@ -52,10 +52,22 @@ public:
 
 	void printNumAsString(int);
 
+	set<pair<int, list<int> > > closure(set<pair<int, list<int> > >);
+
+	set<pair<int, list<int> > > go(int, int);
+
+	void getItemSet();
+
+	bool itemSetFind(set<pair<int, list<int> > >&);
+
+	void printItemSet();
+
 private:
 	string grammarFilepath;	// 语法文件地址
 
 	int count;	// 终结符和非终结符数量，不计算空集
+
+	int start = 1;	// 开始符号
 
 	unordered_map<string, tuple<int, int, int> > lettersToNums;	// 后两个 int 第一个指是否为非终结符，第二个指能否推出空集
 
@@ -76,6 +88,10 @@ private:
 	unordered_map<int, list<set<int> > > selectSet;
 
 	unordered_map<int, unordered_map<int, list<int> > > LL1Table;
+
+	unordered_map<int, set<pair<int, list<int> > > > itemSet;
+
+	unordered_map<int, unordered_map<int, int> > goMap;
 
 	void listToVector();	// 语法规则 list 转换成 vector，使用 list 还是 vector 视情况而定
 

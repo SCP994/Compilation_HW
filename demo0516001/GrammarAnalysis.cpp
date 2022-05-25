@@ -392,16 +392,20 @@ bool GrammarAnalysis::getSelect()
     set<int> tempToInsert;
 
     auto i = grammarNumsVector.begin();
-    auto j = firstRightSet.begin();
-    for (;i != grammarNumsVector.end(); ++i, ++j)
+    for (;i != grammarNumsVector.end(); ++i)
     {
+
+        printNumAsString((*i).first);
+        cout << endl;
         auto k = (*i).second.begin();
-        auto l = (*j).second.begin();
+        auto l = firstRightSet[(*i).first].begin(); // 注意保持两张表的一直，哈希表遍历没有顺序
         for (; k != (*i).second.end(); ++k, ++l)
         {
             for (auto& m : (*l).first)  // 将产生式右部 first 集加进去
+            {
                 if (m != 0)
                     tempToInsert.insert(m);
+            }
 
             if ((*l).second != 1)   // 产生式右部不能推出空集
                 selectSet[(*i).first].push_back(tempToInsert);
@@ -429,7 +433,10 @@ bool GrammarAnalysis::generateLL1Table()
             for (auto& l : *j)
             {
                 if (LL1Table[i.first][l].size() > 0)
+                {
+                    cout << "This is not LL1 grammar." << endl;
                     return false;   // 不是 LL1 文法
+                }
                 LL1Table[i.first][l] = *k;
             }
     }
@@ -685,6 +692,138 @@ void GrammarAnalysis::printNumAsString(int num)
 {
     if (get<0>(numsToLetters[num]) == "___")
         cout << num;
+    else if (num == -1)
+        cout << "dot";
     else
         cout << get<0>(numsToLetters[num]);
+}
+
+set<pair<int, list<int> > > GrammarAnalysis::closure(set<pair<int, list<int> > > closure)
+{
+    pair<int, list<int> > tempToInsert;
+    bool sign = true;
+    while (sign)
+    {
+        sign = false;
+        for (auto& i : closure)
+            for (auto j = i.second.begin(); j != i.second.end(); ++j)
+                if ((*j) == -1 && ++j != i.second.end())
+                {
+                    if (get<1>(numsToLetters[*j]) == 1)
+                    {
+                        tempToInsert.first = *j;
+                        for (auto& k : grammarNums[*j])
+                        {
+                            tempToInsert.second.push_back(-1);
+                            if (k.front() != 0)
+                                for (auto& l : k)
+                                    tempToInsert.second.push_back(l);
+
+                            if (closure.find(tempToInsert) == closure.end()) // 未添加的产生式
+                            {
+                                sign = true;
+                                closure.insert(tempToInsert);
+                            }
+                            tempToInsert.second.clear();
+                        }
+                    }
+                    break;
+                }
+                else if (j == i.second.end())   // 注意一定要有这句
+                    break;
+    }
+    return closure;
+}
+
+set<pair<int, list<int> > > GrammarAnalysis::go(int I, int symbol)
+{
+    set<pair<int, list<int> > > J;
+    pair<int, list<int> > tempToInsert;
+    for (auto& i : itemSet[I])
+        for (auto j = i.second.begin(); j != i.second.end(); ++j)
+        {
+            tempToInsert.first = i.first;
+            if (*j == -1 && ++j != i.second.end())
+            {
+                if (*j == symbol)
+                {
+                    for (auto k = i.second.begin(); k != i.second.end(); ++k)
+                        if (*k != -1)
+                            tempToInsert.second.push_back(*k);
+                        else
+                        {
+                            tempToInsert.second.push_back(*++k);
+                            tempToInsert.second.push_back(-1);
+                        }
+                    J.insert(tempToInsert);
+                    tempToInsert.second.clear();
+                }
+                break;
+            }
+            else if (j == i.second.end())
+                break;
+        }
+
+    return closure(J);
+}
+
+void GrammarAnalysis::getItemSet()
+{
+    set<pair<int, list<int> > > tempSet;
+    list<int> tempList{ -1 };
+    for (auto& i : grammarNums[start].front())
+        tempList.push_back(i);
+
+    tempSet.insert(pair<int, list<int> >{ start, tempList });
+
+    int stateCount = 0;
+    itemSet[stateCount++] = closure(tempSet);
+    printItemSet();
+    bool sign = true;
+    while (sign)
+    {
+        sign = false;
+        for (auto& i : itemSet)
+            for (auto& j : numsToLetters)
+                if (j.first != 0)
+                {
+                    tempSet = go(i.first, j.first);
+                    if (tempSet.size() > 0 && !itemSetFind(tempSet))
+                    {
+                        sign = true;
+                        goMap[i.first][j.first] = stateCount;
+                        itemSet.insert(pair<int, set<pair<int, list<int> > > >{ stateCount++, tempSet });   // 此时插入的值不会被遍历到
+                    }
+                }
+    }
+    printItemSet();
+}
+
+bool GrammarAnalysis::itemSetFind(set<pair<int, list<int> > >& set)
+{
+    for (auto& i : itemSet)
+        if (i.second == set)
+            return true;
+
+    return false;
+}
+
+void GrammarAnalysis::printItemSet()
+{
+    for (auto& i : itemSet)
+    {
+        cout << "State: I" << i.first << endl;
+        for (auto& j : i.second)
+        {
+            printNumAsString(j.first);
+            cout << " -> ";
+            for (auto& k : j.second)
+            {
+                printNumAsString(k);
+                cout << " ";
+            }
+            cout << "; ";
+        }
+        cout << endl;
+    }
 }

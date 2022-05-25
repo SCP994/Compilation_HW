@@ -2,7 +2,7 @@
 #include "GrammarAnalysis.h"
 using namespace std;
 
-void testLexicalAnalysis()
+void test()
 {
     LexicalAnalysis lexicalAnalysis("C:/Users/Ohh/Desktop/compiler/input.txt");
     lexicalAnalysis.run();
@@ -14,11 +14,8 @@ void testLexicalAnalysis()
 
     GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar.txt");
     grammarAnalysis.readAndSaveGrammar();
-    grammarAnalysis.printString();
     grammarAnalysis.eliminateLeftRecursion();
-    grammarAnalysis.printString();
     grammarAnalysis.simplifyGrammar();
-    grammarAnalysis.printString();
     grammarAnalysis.extractLeftCommonFactor();
     grammarAnalysis.printString();
     grammarAnalysis.getFirst();
@@ -31,15 +28,39 @@ void testLexicalAnalysis()
     grammarAnalysis.printSelectSet();
     if (grammarAnalysis.generateLL1Table())
         grammarAnalysis.printLL1Table();
-    
-    cout << endl;
 
-    grammarAnalysis.grammarAnalyse(list);
+    cout << endl;
+    //grammarAnalysis.grammarAnalyse(list);
+
+    //grammarAnalysis.getItemSet();
 }
 
 int main()
 {
-    testLexicalAnalysis();
+    test();
+
+    //list<int> a;
+
+    //for (auto& i : a)
+    //{
+    //    cout << i;
+    //}
+
+    //for (auto k = a.begin(); k != a.end(); ++k)
+    //{
+    //    if (*k != 6)
+    //    {
+
+    //    }
+    //    else
+    //    {
+    //        cout << *++k;
+
+    //        //break;
+    //    }
+    //}
+    //cout << *--a.end();
+
 
 	return 0;
 }
