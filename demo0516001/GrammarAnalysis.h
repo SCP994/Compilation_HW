@@ -38,7 +38,9 @@ public:
 
 	bool generateLL1Table();
 
-	bool grammarAnalyse(list<pair<int, string> >&);
+	bool grammarAnalyseLL1(list<pair<int, string> >&);
+
+	bool grammarAnalyseSLR1(list<pair<int, string> >&);
 
 	void print();
 

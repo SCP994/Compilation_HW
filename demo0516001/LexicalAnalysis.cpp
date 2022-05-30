@@ -5,7 +5,9 @@ LexicalAnalysis::LexicalAnalysis(string input, string output)
 	inputFilepath = input;
 	outputFilepath = output;
     keywords = { "begin", "end", "if", "then", "else", "for", "while", "do", "and", "or", "not" };
-    symbols = { "+", "-", "*", "/", ">", "<", "=", ":=", ">=", "<=", "<>", "++", "--", "(", ")", ";", "#",
+    //symbols = { "+", "-", "*", "/", ">", "<", "=", ":=", ">=", "<=", "<>", "++", "--", "(", ")", ";", "#",
+    //"," };
+    symbols = { "+", "-", "*", "/", ">", "<", "=", ":", ">=", "<=", "<>", "++", "--", "(", ")", ";", "#",
     "," };
 }
 

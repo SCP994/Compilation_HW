@@ -12,7 +12,9 @@ void test()
         cout << "key: " << (*it).first << ", value: " << (*it).second << endl;
     }
 
-    GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar.txt");
+    //GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar.txt");
+    GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar1.txt");
+    //GrammarAnalysis grammarAnalysis("C:/Users/Ohh/Desktop/compiler/grammar2.txt");
     grammarAnalysis.readAndSaveGrammar();
     //grammarAnalysis.eliminateLeftRecursion();
     //grammarAnalysis.simplifyGrammar();
@@ -32,10 +34,12 @@ void test()
         grammarAnalysis.printLL1Table();
 
     //cout << endl;
-    //grammarAnalysis.grammarAnalyse(list);
+    //grammarAnalysis.grammarAnalyseLL1(list);
 
     grammarAnalysis.getItemSet();
     grammarAnalysis.generateSLR1Table();
+    grammarAnalysis.grammarAnalyseSLR1(list);
+
 }
 
 int main()

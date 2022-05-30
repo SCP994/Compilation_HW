@@ -440,12 +440,12 @@ bool GrammarAnalysis::generateLL1Table()
     return true;
 }
 
-bool GrammarAnalysis::grammarAnalyse(list<pair<int, string> >& list)
+bool GrammarAnalysis::grammarAnalyseLL1(list<pair<int, string> >& list)
 {
     stack<int> inputString, tempStack;
     inputString.push(get<0>(lettersToNums["$"]));
     tempStack.push(get<0>(lettersToNums["$"]));
-    tempStack.push(1);   // 将开始符号压入栈中
+    tempStack.push(start);   // 将开始符号压入栈中
 
     auto i = list.end();
     do
@@ -509,6 +509,68 @@ bool GrammarAnalysis::grammarAnalyse(list<pair<int, string> >& list)
     else
         cout << "Failed to match." << endl;
     return sign;
+}
+
+bool GrammarAnalysis::grammarAnalyseSLR1(list<pair<int, string> >& list)
+{
+    //	unordered_map<int, unordered_map<int, tuple<int, int, list<int> > > > SLR1Table;
+
+    stack<int> inputString, tempStack, temp;
+    inputString.push(get<0>(lettersToNums["$"]));
+    tempStack.push(0);   // 将初始状态符号 0 压入栈中
+
+    auto i = list.end();
+    do
+    {
+        --i;
+        if ((*i).first == 2)
+            inputString.push(get<0>(lettersToNums["i"]));
+        else if ((*i).first == 4)
+            inputString.push(get<0>(lettersToNums[(*i).second]));
+        else
+        {
+            cout << "Error: " << "input string" << endl;
+            return false;
+        }
+
+    } while (i != list.begin());
+
+    int row, col;
+    while (tempStack.size() > 0)
+    {
+        row = tempStack.top();
+        col = inputString.top();
+        if (get<0>(SLR1Table[row][col]) == -1)  // Acc
+        {
+            cout << "Match successfully!" << endl;
+            return true;
+        }
+        else if (get<0>(SLR1Table[row][col]) == 0)
+        {
+            cout << 0 << endl;
+            tempStack.push(inputString.top());  // 压入输入串第一个字符
+            inputString.pop();
+            tempStack.push(get<1>(SLR1Table[row][col]));    // 压入状态
+        }
+        else if (get<0>(SLR1Table[row][col]) == 2)
+        {
+            cout << 2 << endl;
+            for (int i = 0; i < get<2>(SLR1Table[row][col]).size() - 1; ++i)    // list<int> 存了产生式左边的符号和右边的符号，所以这里 size 要减 1
+            {
+                tempStack.pop();    // 弹出状态数字
+                tempStack.pop();    // 弹出终结符号或非终结符号
+            }
+            col = get<2>(SLR1Table[row][col]).front();
+            row = tempStack.top();
+            tempStack.push(col);
+            tempStack.push(get<1>(SLR1Table[row][col]));
+        }
+        else
+            break;
+    }
+
+    cout << "Match failed" << endl;
+    return false;
 }
 
 void GrammarAnalysis::listToVector()
@@ -827,6 +889,7 @@ void GrammarAnalysis::printItemSet()
 
 bool GrammarAnalysis::generateSLR1Table()
 {
+    cout << "Begin SLR1:" << endl;
     int endCol = get<0>(lettersToNums["$"]);
     int endRow = 0;
 
@@ -841,7 +904,12 @@ bool GrammarAnalysis::generateSLR1Table()
                     endRow = i;
                 for (auto& l : followSet[k.first])
                     if (tempFollowSet.find(l) != tempFollowSet.end())
+                    {
+                        cout << i << endl;
+                        printNumAsString(l);
+                        cout << "fail1" << endl;
                         return false;
+                    }
                     else
                         tempFollowSet.insert(l);
             }
@@ -851,7 +919,10 @@ bool GrammarAnalysis::generateSLR1Table()
                     {
                         if (get<1>(numsToLetters[*++l]) == 0)
                             if (tempFollowSet.find(*l) != tempFollowSet.end())
+                            {
+                                cout << "fail2" << endl;
                                 return false;
+                            }
                             else
                                 tempFollowSet.insert(*l);
                         break;
@@ -883,7 +954,8 @@ bool GrammarAnalysis::generateSLR1Table()
                     if (followSet[k.first].find(j.first) != followSet[k.first].end())
                     {
                         tempList = k.second;
-                        tempList.pop_front();
+                        tempList.push_front(k.first);
+                        tempList.pop_back();    // 把结尾的 点 弹出！！！
                         SLR1Table[i][j.first] = tuple<int, int, list<int> >{ 2, 0, tempList };
                         break;
                     }
@@ -891,6 +963,7 @@ bool GrammarAnalysis::generateSLR1Table()
     }
 
     printSLR1Table();
+    cout << "SLR1Table generated." << endl;
     return true;
 }
 
