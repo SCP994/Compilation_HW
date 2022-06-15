@@ -147,6 +147,15 @@
     <ClInclude Include="GrammarAnalysis.h" />
     <ClInclude Include="LexicalAnalysis.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\Desktop\compiler\grammar0.txt" />
+    <Text Include="..\..\..\..\Desktop\compiler\grammar1.txt" />
+    <Text Include="..\..\..\..\Desktop\compiler\grammar2.txt" />
+    <Text Include="..\..\..\..\Desktop\compiler\input0.txt" />
+    <Text Include="..\..\..\..\Desktop\compiler\input1.txt" />
+    <Text Include="..\..\..\..\Desktop\compiler\input2.txt" />
+    <Text Include="..\..\..\..\Desktop\compiler\input3.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
