@@ -7,8 +7,8 @@ LexicalAnalysis::LexicalAnalysis(string input, string output)
     keywords = { "begin", "end", "if", "then", "else", "for", "while", "do", "and", "or", "not" };
     //symbols = { "+", "-", "*", "/", ">", "<", "=", ":=", ">=", "<=", "<>", "++", "--", "(", ")", ";", "#",
     //"," };
-    symbols = { "+", "-", "*", "/", ">", "<", "=", ":", ">=", "<=", "<>", "++", "--", "(", ")", ";", "#",
-    "," };
+    symbols = { "+", "-", "*", "/", ">", "<", "=", ":=", ">=", "<=", "<>", "++", "--", "(", ")", ";", "#",
+    ",", ":"};
 }
 
 void LexicalAnalysis::run()
@@ -62,6 +62,9 @@ bool LexicalAnalysis::matchKeywords(const string& str)
 
 bool LexicalAnalysis::matchIdentifiers(const string& str)
 {
+    if (str[0] == '_' && str.size() == 1)
+        return false;
+
     if (str[0] < 'A' || str[0] > 'Z' && str[0] < 'a' && str[0] != '_' || str[0] > 'z')
         return false;
 
@@ -100,19 +103,20 @@ bool LexicalAnalysis::match(const string& str)
 {
     int len = str.size();
     int start = 0;
+    string t = " ";
     for (int i = 0; i < len; ++i)
     {
         if ((i < len - 1 && matchSymbols(str.substr(i, 2))) || matchSymbols(str.substr(i, 1)))
         {
-            if (start != i)
-                if (matchKeywords(str.substr(start, i - start)))
+            if (start < i)
+                if (matchNum(str.substr(start, i - start)))
+                    binarySequences.push_back(pair<int, string>(3, str.substr(start, i - start)));
+
+                else if (matchKeywords(str.substr(start, i - start)))
                     binarySequences.push_back(pair<int, string>(1, str.substr(start, i - start)));
 
                 else if (matchIdentifiers(str.substr(start, i - start)))
                     binarySequences.push_back(pair<int, string>(2, str.substr(start, i - start)));
-
-                else if (matchNum(str.substr(start, i - start)))
-                    binarySequences.push_back(pair<int, string>(3, str.substr(start, i - start)));
 
                 else
                     return false;
@@ -121,25 +125,36 @@ bool LexicalAnalysis::match(const string& str)
             {
                 binarySequences.push_back(pair<int, string>(4, str.substr(i, 2)));
                 start = i + 2;
+                ++i;
             }
             else
             {
+                t = str.substr(i, 1);
                 binarySequences.push_back(pair<int, string>(4, str.substr(i, 1)));
                 start = i + 1;
             }
         }
         else if (i == len - 1)
-            if (matchKeywords(str.substr(start, i - start + 1)))
-                binarySequences.push_back(pair<int, string>(1, str.substr(start, i - start + 1)));
-
-            else if (matchIdentifiers(str.substr(start, i - start + 1)))
-                binarySequences.push_back(pair<int, string>(2, str.substr(start, i - start + 1)));
-
-            else if (matchNum(str.substr(start, i - start + 1)))
-                binarySequences.push_back(pair<int, string>(3, str.substr(start, i - start + 1)));
-
+        {
+            if (t == "#")
+            {
+                binarySequences.push_back(pair<int, string>(5, str.substr(start, i - start + 1)));
+            }
             else
-                return false;
+            {
+                if (matchNum(str.substr(start, i - start + 1)))
+                    binarySequences.push_back(pair<int, string>(3, str.substr(start, i - start + 1)));
+
+                else if (matchIdentifiers(str.substr(start, i - start + 1)))
+                    binarySequences.push_back(pair<int, string>(2, str.substr(start, i - start + 1)));
+
+                else if (matchKeywords(str.substr(start, i - start + 1)))
+                    binarySequences.push_back(pair<int, string>(1, str.substr(start, i - start + 1)));
+
+                else
+                    return false;
+            }
+        }
     }
     return true;
 }

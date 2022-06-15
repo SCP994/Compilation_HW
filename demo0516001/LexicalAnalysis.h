@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <vector>
 #include <list>
@@ -17,12 +17,15 @@ public:
 	list<pair<int, string>> getSequences() const;
 
 private:
+	// 词法文件地址
 	string inputFilepath;
 
+	// 没用到
 	string outputFilepath;
 
 	vector<string> keywords, symbols;
 
+	// 二元序列
 	list<pair<int, string>> binarySequences;
 
 	bool matchKeywords(const string&);

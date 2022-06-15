@@ -83,7 +83,7 @@ private:
 
 	unordered_map<string, tuple<int, int, int> > lettersToNums;	// 后两个 int 第一个指是否为非终结符，第二个指能否推出空集
 
-	unordered_map<int, tuple<string, int, int> > numsToLetters;
+	unordered_map<int, tuple<string, int, int> > numsToLetters; // 后两个 int 的作用同上
 
 	unordered_map<string, list<string> > grammarString;
 
@@ -93,7 +93,7 @@ private:
 
 	unordered_map<int, set<int> > firstSet;
 
-	unordered_map<int, list<pair<set<int>, int> > > firstRightSet;
+	unordered_map<int, list<pair<set<int>, int> > > firstRightSet;  // unordered_map<非终结符号, list<pair<First 集, 能否推出空集的标志位> > >
 
 	unordered_map<int, set<int> > followSet;
 
@@ -105,6 +105,7 @@ private:
 
 	unordered_map<int, unordered_map<int, int> > goMap;
 
+	// 项目集数量
 	int stateCount = 0;
 
 	unordered_map<int, unordered_map<int, tuple<int, int, list<int> > > > SLR1Table;

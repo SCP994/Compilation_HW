@@ -536,6 +536,7 @@ bool GrammarAnalysis::grammarAnalyseSLR1(list<pair<int, string> >& list)
     } while (i != list.begin());
 
     int row, col;
+    int action, go;
     while (tempStack.size() > 0)
     {
         row = tempStack.top();
@@ -547,15 +548,15 @@ bool GrammarAnalysis::grammarAnalyseSLR1(list<pair<int, string> >& list)
         }
         else if (get<0>(SLR1Table[row][col]) == 0)
         {
-            cout << 0 << endl;
+            //cout << 0 << endl;
             tempStack.push(inputString.top());  // 压入输入串第一个字符
             inputString.pop();
             tempStack.push(get<1>(SLR1Table[row][col]));    // 压入状态
         }
         else if (get<0>(SLR1Table[row][col]) == 2)
         {
-            cout << 2 << endl;
-            for (int i = 0; i < get<2>(SLR1Table[row][col]).size() - 1; ++i)    // list<int> 存了产生式左边的符号和右边的符号，所以这里 size 要减 1
+            //cout << 2 << endl;
+            for (int i = 0; i < get<2>(SLR1Table[row][col]).size() - 1; ++i) // list<int> 存了产生式左边的符号和右边的符号，所以这里 size 要减 1
             {
                 tempStack.pop();    // 弹出状态数字
                 tempStack.pop();    // 弹出终结符号或非终结符号
@@ -567,6 +568,39 @@ bool GrammarAnalysis::grammarAnalyseSLR1(list<pair<int, string> >& list)
         }
         else
             break;
+
+        // 把过程打印出来
+        cout << 0;
+        while (tempStack.size() > 1)
+        {
+            cout << tempStack.top();
+            temp.push(tempStack.top());
+            tempStack.pop();
+            printNumAsString(tempStack.top());
+            temp.push(tempStack.top());
+            tempStack.pop();
+        }
+        while (!temp.empty())
+        {
+            tempStack.push(temp.top());
+            temp.pop();
+        }
+
+        cout << "    ";
+
+        while (!inputString.empty())
+        {
+            printNumAsString(inputString.top());
+            temp.push(inputString.top());
+            inputString.pop();
+        }
+        while (!temp.empty())
+        {
+            inputString.push(temp.top());
+            temp.pop();
+        }
+
+        cout << endl;
     }
 
     cout << "Match failed" << endl;
